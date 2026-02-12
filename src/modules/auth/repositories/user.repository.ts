@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { IUser, IUserRepository } from '../interfaces/user.interface';
+import {
+  IUser,
+  IUserRepository,
+  IUsersResponse,
+} from '../interfaces/user.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
 import { Repository } from 'typeorm';
@@ -43,6 +47,27 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       throw new Error(
         'Erro encontrar usuário por email: ' +
+          (error ? error.message : 'Erro desconhecido'),
+      );
+    }
+  }
+
+  async listUsers(): Promise<IUsersResponse[]> {
+    try {
+      const users = await this.userRepository.find();
+      const result: IUsersResponse[] = [];
+      for (const user of users) {
+        result.push({
+          nome: user.name,
+          sobrenome: user.lastName,
+          email: user.email,
+          cadastrado_em: user.createdAt,
+        });
+      }
+      return result;
+    } catch (error) {
+      throw new Error(
+        'Erro ao listar usuários: ' +
           (error ? error.message : 'Erro desconhecido'),
       );
     }

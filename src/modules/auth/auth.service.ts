@@ -7,7 +7,11 @@ import {
   validateNameUser,
   validatePassword,
 } from './utils/auth.utils';
-import type { IUser, IUserRepository } from './interfaces/user.interface';
+import type {
+  IUser,
+  IUserRepository,
+  IUsersResponse,
+} from './interfaces/user.interface';
 import { UserLoginDto } from './dto/user-login.dto';
 
 @Injectable()
@@ -113,6 +117,21 @@ export class AuthService {
     } catch (error) {
       throw new Error(
         'Erro ao fazer login: ' + (error ? error.message : 'Erro desconhecido'),
+      );
+    }
+  }
+
+  async listUsers(): Promise<{ message: string; users: IUsersResponse[] }> {
+    try {
+      const users: IUsersResponse[] = await this.userRepository.listUsers();
+      return {
+        message: 'Users retrieved successfully',
+        users,
+      };
+    } catch (error) {
+      throw new Error(
+        'Erro ao listar usuários: ' +
+          (error ? error.message : 'Erro desconhecido'),
       );
     }
   }

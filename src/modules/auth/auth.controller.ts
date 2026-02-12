@@ -39,4 +39,19 @@ export class AuthController {
         .json({ message: error ? error.message : 'Internal server error' });
     }
   }
+
+  @Get('/lista-usuarios')
+  async listUsers(@Res() res: Response) {
+    try {
+      const result = await this.authService.listUsers();
+      res.status(HttpStatus.OK).json({
+        message: result.message || 'Users retrieved successfully',
+        users: result.users,
+      });
+    } catch (error) {
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: error ? error.message : 'Internal server error' });
+    }
+  }
 }
