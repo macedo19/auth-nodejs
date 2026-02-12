@@ -1,7 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { IUserRepository } from '../../src/modules/auth/interfaces/user.interface';
-import { encrypitPassword } from '../../src/modules/auth/utils/auth.utils';
+import {
+  encrypitPassword,
+  validateDocument,
+} from '../../src/modules/auth/utils/auth.utils';
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+import { CreateUserDto } from '../../src/modules/auth/dto/create-user.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -34,53 +40,79 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 
-  it('validar campos do usuário - nome inválido', async () => {
+  it('deve verificar se é um cpf válido para usuário brasileiro', () => {
     const createUserDTO = {
+      nome: 'John Doe',
+      senha: 'Password1',
+      email: 'john.doe@example.com',
+      documento: '529.982.247-25',
+      brasileiro: true,
+    };
+
+    validateDocument(
+      createUserDTO.documento,
+      createUserDTO.brasileiro ?? false,
+    );
+  });
+
+  it('validar campos do usuário - nome inválido', async () => {
+    const createUserDTO = plainToInstance(CreateUserDto, {
       nome: 'John123',
       senha: 'Password1',
       email: 'john.doe@example.com',
-    };
+      documento: '529.982.247-25',
+      brasileiro: true,
+    });
 
-    await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Nome do usuário inválido. O nome deve conter apenas letras e espaços.',
-    );
+    const errors = await validate(createUserDTO);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].constraints).toHaveProperty('isAlpha');
   });
 
   it('validar campos do usuário - senha inválida', async () => {
-    const createUserDTO = {
-      nome: 'John Doe',
+    const createUserDTO = plainToInstance(CreateUserDto, {
+      nome: 'John',
       senha: 'pass',
       email: 'john.doe@example.com',
-    };
+      documento: '529.982.247-25',
+      brasileiro: true,
+    });
 
-    await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Senha do usuário inválida. A senha deve conter pelo menos 6 caracteres, incluindo letras maiúsculas, letras minúsculas e números.',
-    );
+    const errors = await validate(createUserDTO);
+    expect(errors.length).toBeGreaterThan(0);
+    const senhaError = errors.find((err) => err.property === 'senha');
+    expect(senhaError?.constraints).toHaveProperty('isStrongPassword');
   });
 
   it('validar campos do usuário - email inválido', async () => {
-    const createUserDTO = {
+    const createUserDTO = plainToInstance(CreateUserDto, {
       nome: 'John Doe',
       senha: 'Password1',
       email: 'john.doe@example',
-    };
+      documento: '529.982.247-25',
+      brasileiro: true,
+    });
 
-    await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Email do usuário inválido. O email deve ser um endereço de email válido.',
-    );
+    const errors = await validate(createUserDTO);
+    expect(errors.length).toBeGreaterThan(0);
+    const emailError = errors.find((err) => err.property === 'email');
+    expect(emailError?.constraints).toHaveProperty('isEmail');
   });
 
   it('validar campos do usuário - sobrenome inválido', async () => {
-    const createUserDTO = {
+    const createUserDTO = plainToInstance(CreateUserDto, {
       nome: 'John Doe',
       senha: 'Password1',
       email: 'john.doe@example.com',
       sobrenome: 'Smith123',
-    };
+      documento: '529.982.247-25',
+      brasileiro: true,
+    });
 
-    await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Sobrenome do usuário inválido. O sobrenome deve conter apenas letras e espaços.',
-    );
+    const errors = await validate(createUserDTO);
+    expect(errors.length).toBeGreaterThan(0);
+    const sobrenomeError = errors.find((err) => err.property === 'sobrenome');
+    expect(sobrenomeError?.constraints).toHaveProperty('isAlpha');
   });
 
   it('deve criar um usuário com campos válidos', async () => {
@@ -89,6 +121,8 @@ describe('AuthService', () => {
       senha: 'Password1',
       email: 'john.doe@example.com',
       sobrenome: 'Smith',
+      documento: '529.982.247-25',
+      brasileiro: true,
     };
 
     await expect(service.createUser(createUserDTO)).resolves.toEqual({
@@ -101,6 +135,8 @@ describe('AuthService', () => {
       nome: 'John Doe',
       senha: 'Password1',
       email: 'john.doe@example.com',
+      documento: '529.982.247-25',
+      brasileiro: true,
     };
 
     await expect(service.createUser(createUserDTO)).resolves.toEqual({
@@ -113,12 +149,14 @@ describe('AuthService', () => {
       nome: 'John Doe',
       senha: 'Password1',
       email: 'existing@example.com',
+      documento: '529.982.247-25',
+      brasileiro: true,
     };
 
     jest.spyOn(repository, 'verifyEmail').mockResolvedValue(true);
 
     await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Problema ao criar usuário: Email já cadastrado. Por favor, use outro email.',
+      'Email já cadastrado. Por favor, use outro email.',
     );
   });
 
@@ -127,6 +165,8 @@ describe('AuthService', () => {
       nome: 'John Doe',
       senha: 'Password1',
       email: 'john.doe@example.com',
+      documento: '529.982.247-25',
+      brasileiro: true,
     };
 
     await expect(encrypitPassword(createUserDTO.senha)).resolves.not.toBe(
