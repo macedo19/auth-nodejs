@@ -3,6 +3,8 @@ export interface IUser {
   lastName?: string;
   email: string;
   password: string;
+  document: string;
+  isBrazilian: boolean;
 }
 
 export interface IUsersResponse {

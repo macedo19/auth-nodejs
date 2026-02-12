@@ -1,42 +1,27 @@
 import * as bcrypt from 'bcrypt';
+import { cpf } from 'cpf-cnpj-validator';
+import { isAlpha, isNumeric } from 'validator';
 
-function validateNameUser(name: string): boolean {
-  const nameRegex = /^[a-zA-Z\s]+$/;
-  return nameRegex.test(name);
+function validateDocument(
+  document: string,
+  is_brasileiro: boolean = true,
+): boolean {
+  const isValidDocument = is_brasileiro
+    ? cpf.isValid(document)
+    : validateDocumentRNE(document);
+  return isValidDocument;
 }
 
-function validateLastName(lastName: string): boolean {
-  const lastNameRegex = /^[a-zA-Z\s]+$/;
-  return lastNameRegex.test(lastName);
-}
-
-function validatePassword(password: string): boolean {
-  const regexUpperCase = /[A-Z]/;
-  if (!regexUpperCase.test(password)) {
+function validateDocumentRNE(document: string): boolean {
+  const rneFormated = document.replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+  if (rneFormated.length !== 7) {
     return false;
   }
 
-  const regexLowerCase = /[a-z]/;
-  if (!regexLowerCase.test(password)) {
-    return false;
-  }
+  const firstTwo = rneFormated.substring(0, 1);
+  const lastSix = rneFormated.substring(1);
 
-  const regexNumber = /[0-9]/;
-  if (!regexNumber.test(password)) {
-    return false;
-  }
-
-  return password.length >= 6;
-}
-
-function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailRegex.test(email)) {
-    return false;
-  }
-
-  return emailRegex.test(email);
+  return isAlpha(firstTwo) && isNumeric(lastSix, { no_symbols: true });
 }
 
 async function encrypitPassword(password: string): Promise<string> {
@@ -53,10 +38,8 @@ async function comparePassword(
 }
 
 export {
-  validateNameUser,
-  validatePassword,
-  validateEmail,
-  validateLastName,
   encrypitPassword,
   comparePassword,
+  validateDocument,
+  validateDocumentRNE,
 };

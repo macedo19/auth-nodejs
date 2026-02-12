@@ -17,11 +17,16 @@ export class User {
   @Column({ length: 100, type: 'varchar' })
   password: string;
 
+  @Column({ name: 'document', length: 20, type: 'varchar', nullable: true })
+  document?: string;
+
+  @Column({ name: 'is_brazilian', type: 'boolean', default: true })
+  isBrazilian: boolean;
+
   @Column({ type: 'timestamp' })
   createdAt: Date;
 
-  @BeforeInsert()
-  setCreatedAt() {
+  @BeforeInsert() setCreatedAt() {
     this.createdAt = new Date();
   }
 }

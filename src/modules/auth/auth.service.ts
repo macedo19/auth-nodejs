@@ -1,11 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
   comparePassword,
   encrypitPassword,
-  validateEmail,
-  validateNameUser,
-  validatePassword,
+  validateDocument,
 } from './utils/auth.utils';
 import type {
   IUser,
@@ -21,74 +19,48 @@ export class AuthService {
   ) {}
 
   async createUser(createUserDTO: CreateUserDto): Promise<{ message: string }> {
-    try {
-      this.validateUserFields(createUserDTO);
+    const existsUser = await this.verifyUserExists(createUserDTO.email);
 
-      const existsUser = await this.verifyUserExists(createUserDTO.email);
-
-      if (existsUser) {
-        throw new Error('Email já cadastrado. Por favor, use outro email.');
-      }
-
-      const user: IUser = {
-        name: createUserDTO.nome,
-        lastName: createUserDTO.sobrenome,
-        email: createUserDTO.email,
-        password: await encrypitPassword(createUserDTO.senha),
-      };
-
-      const userCreated = await this.userRepository.create(user);
-
-      if (!userCreated) {
-        throw new Error('Erro ao criar usuário. Por favor, tente novamente.');
-      }
-
-      return { message: `User ${userCreated.name} created successfully` };
-    } catch (error) {
-      throw new Error(
-        'Problema ao criar usuário: ' +
-          (error ? error.message : 'Erro desconhecido'),
-      );
-    }
-  }
-
-  validateUserFields(createUserDTO: CreateUserDto): boolean | void {
-    if (!validateNameUser(createUserDTO.nome)) {
-      throw new Error(
-        'Nome do usuário inválido. O nome deve conter apenas letras e espaços.',
+    if (existsUser) {
+      throw new BadRequestException(
+        'Email já cadastrado. Por favor, use outro email.',
       );
     }
 
-    if (!validatePassword(createUserDTO.senha)) {
-      throw new Error(
-        'Senha do usuário inválida. A senha deve conter pelo menos 6 caracteres, incluindo letras maiúsculas, letras minúsculas e números.',
+    const isValidDocument = validateDocument(
+      createUserDTO.documento,
+      createUserDTO.brasileiro ?? true,
+    );
+
+    if (!isValidDocument) {
+      throw new BadRequestException(
+        'Documento inválido. Por favor, forneça um documento válido no formato de CPF ou RNE.',
       );
     }
 
-    if (!validateEmail(createUserDTO.email)) {
-      throw new Error(
-        'Email do usuário inválido. O email deve ser um endereço de email válido.',
+    const user: IUser = {
+      name: createUserDTO.nome,
+      lastName: createUserDTO.sobrenome,
+      email: createUserDTO.email,
+      password: await encrypitPassword(createUserDTO.senha),
+      document: createUserDTO.documento,
+      isBrazilian: createUserDTO.brasileiro ?? true,
+    };
+
+    const userCreated = await this.userRepository.create(user);
+
+    if (!userCreated) {
+      throw new BadRequestException(
+        'Erro ao criar usuário. Por favor, tente novamente.',
       );
     }
 
-    if (createUserDTO.sobrenome && !validateNameUser(createUserDTO.sobrenome)) {
-      throw new Error(
-        'Sobrenome do usuário inválido. O sobrenome deve conter apenas letras e espaços.',
-      );
-    }
-    return true;
+    return { message: `User ${user.name} created successfully` };
   }
 
   async verifyUserExists(email: string): Promise<boolean | void> {
-    try {
-      const existsUser = await this.userRepository.verifyEmail(email);
-      return existsUser ? true : false;
-    } catch (error) {
-      throw new Error(
-        'Erro ao verificar existência do usuário: ' +
-          (error ? error.message : 'Erro desconhecido'),
-      );
-    }
+    const existsUser = await this.userRepository.verifyEmail(email);
+    return existsUser ? true : false;
   }
 
   async loginUser(userLoginDTO: UserLoginDto): Promise<{ message: string }> {

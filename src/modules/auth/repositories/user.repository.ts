@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import {
   IUser,
   IUserRepository,
@@ -21,7 +21,7 @@ export class UserRepository implements IUserRepository {
       await this.userRepository.save(newUser);
       return newUser as IUser;
     } catch (error) {
-      throw new Error(
+      throw new InternalServerErrorException(
         'Erro encontrado ao criar usuário: ' +
           (error ? error.message : 'Erro desconhecido'),
       );
@@ -33,7 +33,7 @@ export class UserRepository implements IUserRepository {
       const rowUser = await this.userRepository.findOne({ where: { email } });
       return !!rowUser;
     } catch (error) {
-      throw new Error(
+      throw new InternalServerErrorException(
         'Erro encontrar usuário por email: ' +
           (error ? error.message : 'Erro desconhecido'),
       );
