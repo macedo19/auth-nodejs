@@ -117,7 +117,7 @@ describe('AuthService', () => {
     jest.spyOn(repository, 'verifyEmail').mockResolvedValue(true);
 
     await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Problema ao criar usuário: Email já cadastrado. Por favor, use outro email.',
+      'Problema ao criar usuário: Erro ao verificar existência do usuário: Email já cadastrado. Por favor, use outro email.',
     );
   });
 
