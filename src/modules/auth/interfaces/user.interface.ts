@@ -4,7 +4,9 @@ export interface IUser {
   email: string;
   password: string;
 }
+
 export interface IUserRepository {
   create(user: IUser): Promise<IUser | null>;
   verifyEmail(email: string): Promise<boolean>;
+  getHashedPassword(email: string): Promise<string>;
 }

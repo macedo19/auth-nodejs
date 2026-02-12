@@ -45,10 +45,18 @@ async function encrypitPassword(password: string): Promise<string> {
   return hashPassword;
 }
 
+async function comparePassword(
+  password: string,
+  hashedPassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(password, hashedPassword);
+}
+
 export {
   validateNameUser,
   validatePassword,
   validateEmail,
   validateLastName,
   encrypitPassword,
+  comparePassword,
 };

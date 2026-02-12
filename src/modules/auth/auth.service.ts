@@ -1,12 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
+  comparePassword,
   encrypitPassword,
   validateEmail,
   validateNameUser,
   validatePassword,
 } from './utils/auth.utils';
 import type { IUser, IUserRepository } from './interfaces/user.interface';
+import { UserLoginDto } from './dto/user-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +20,11 @@ export class AuthService {
     try {
       this.validateUserFields(createUserDTO);
 
-      await this.verifyUserExists(createUserDTO.email);
+      const existsUser = await this.verifyUserExists(createUserDTO.email);
+
+      if (existsUser) {
+        throw new Error('Email já cadastrado. Por favor, use outro email.');
+      }
 
       const user: IUser = {
         name: createUserDTO.nome,
@@ -72,14 +78,41 @@ export class AuthService {
   async verifyUserExists(email: string): Promise<boolean | void> {
     try {
       const existsUser = await this.userRepository.verifyEmail(email);
-      if (existsUser) {
-        throw new Error('Email já cadastrado. Por favor, use outro email.');
-      }
-      return false;
+      return existsUser ? true : false;
     } catch (error) {
       throw new Error(
         'Erro ao verificar existência do usuário: ' +
           (error ? error.message : 'Erro desconhecido'),
+      );
+    }
+  }
+
+  async loginUser(userLoginDTO: UserLoginDto): Promise<{ message: string }> {
+    try {
+      const userExist = await this.userRepository.verifyEmail(
+        userLoginDTO.email,
+      );
+      if (!userExist) {
+        throw new Error('Usuário não encontrado com o email fornecido.');
+      }
+
+      const hashedPassword = await this.userRepository.getHashedPassword(
+        userLoginDTO.email,
+      );
+
+      const passwordMatch = await comparePassword(
+        userLoginDTO.senha,
+        hashedPassword,
+      );
+
+      if (!passwordMatch) {
+        throw new Error('Senha incorreta. Por favor, tente novamente.');
+      }
+
+      return { message: 'User logged in successfully' };
+    } catch (error) {
+      throw new Error(
+        'Erro ao fazer login: ' + (error ? error.message : 'Erro desconhecido'),
       );
     }
   }

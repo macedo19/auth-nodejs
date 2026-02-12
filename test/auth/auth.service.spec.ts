@@ -20,6 +20,7 @@ describe('AuthService', () => {
               lastName: 'Smith',
             }),
             verifyEmail: jest.fn().mockResolvedValue(null),
+            getHashedPassword: jest.fn().mockResolvedValue('hashedPassword'),
           },
         },
       ],
@@ -117,7 +118,7 @@ describe('AuthService', () => {
     jest.spyOn(repository, 'verifyEmail').mockResolvedValue(true);
 
     await expect(service.createUser(createUserDTO)).rejects.toThrow(
-      'Problema ao criar usuário: Erro ao verificar existência do usuário: Email já cadastrado. Por favor, use outro email.',
+      'Problema ao criar usuário: Email já cadastrado. Por favor, use outro email.',
     );
   });
 
@@ -131,5 +132,41 @@ describe('AuthService', () => {
     await expect(encrypitPassword(createUserDTO.senha)).resolves.not.toBe(
       createUserDTO.senha,
     );
+  });
+
+  it('deve lançar um erro ao fazer login com senha incorreta', async () => {
+    const userLoginDTO = {
+      email: 'john.doe@example.com',
+      senha: 'WrongPassword',
+    };
+
+    jest
+      .spyOn(repository, 'getHashedPassword')
+      .mockResolvedValue('hashedPassword');
+    jest
+      .spyOn(service, 'loginUser')
+      .mockRejectedValue(new Error('Senha incorreta'));
+
+    await expect(service.loginUser(userLoginDTO)).rejects.toThrow(
+      'Senha incorreta',
+    );
+  });
+
+  it('deve fazer login com sucesso caso a senha esteja correta', async () => {
+    const userLoginDTO = {
+      email: 'john.doe@example.com',
+      senha: 'Password1',
+    };
+
+    jest
+      .spyOn(repository, 'getHashedPassword')
+      .mockResolvedValue('hashedPassword');
+    jest
+      .spyOn(service, 'loginUser')
+      .mockResolvedValue({ message: 'User logged in successfully' });
+
+    await expect(service.loginUser(userLoginDTO)).resolves.toEqual({
+      message: 'User logged in successfully',
+    });
   });
 });
