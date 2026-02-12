@@ -1,0 +1,10 @@
+export interface IUser {
+  name: string;
+  lastName?: string;
+  email: string;
+  password: string;
+}
+export interface IUserRepository {
+  create(user: IUser): Promise<IUser | null>;
+  verifyEmail(email: string): Promise<boolean>;
+}
