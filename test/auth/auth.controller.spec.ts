@@ -12,6 +12,13 @@ describe('AuthController', () => {
       providers: [
         AuthService,
         {
+          provide: 'CACHE_MANAGER',
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+          },
+        },
+        {
           provide: 'IUserRepository',
           useValue: {
             create: jest.fn().mockResolvedValue({
@@ -20,7 +27,13 @@ describe('AuthController', () => {
               password: 'hashedPassword',
               lastName: 'Smith',
             }),
-            verifyEmail: jest.fn().mockResolvedValue(null),
+            getUserByEmail: jest.fn().mockResolvedValue(null),
+          },
+        },
+        {
+          provide: 'IUserBasicAuthRespository',
+          useValue: {
+            saveBasicAuth: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
