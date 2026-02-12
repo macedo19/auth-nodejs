@@ -1,4 +1,11 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserBasicAuth } from './users-basic-auth.entity';
 
 @Entity('users')
 export class User {
@@ -29,4 +36,9 @@ export class User {
   @BeforeInsert() setCreatedAt() {
     this.createdAt = new Date();
   }
+
+  @OneToOne(() => UserBasicAuth, (userBasicAuth) => userBasicAuth.user, {
+    cascade: true,
+  })
+  userBasicAuth: UserBasicAuth;
 }

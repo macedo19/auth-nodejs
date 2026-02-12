@@ -5,17 +5,29 @@ import {
   encrypitPassword,
   validateDocument,
 } from '../../src/modules/auth/utils/auth.utils';
+import * as authUtils from '../../src/modules/auth/utils/auth.utils';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { CreateUserDto } from '../../src/modules/auth/dto/create-user.dto';
+import type { Cache } from '@nestjs/cache-manager';
+import type { IUserBasicAuthRespository } from '../../src/modules/auth/interfaces/user-basic-auth.interface';
 
 describe('AuthService', () => {
   let service: AuthService;
   let repository: IUserRepository;
+  let cacheManager: Cache;
+  let userBasicAuthRepository: IUserBasicAuthRespository;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
+        {
+          provide: 'CACHE_MANAGER',
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+          },
+        },
         {
           provide: 'IUserRepository',
           useValue: {
@@ -25,8 +37,14 @@ describe('AuthService', () => {
               password: 'hashedPassword',
               lastName: 'Smith',
             }),
-            verifyEmail: jest.fn().mockResolvedValue(null),
-            getHashedPassword: jest.fn().mockResolvedValue('hashedPassword'),
+            getUserByEmail: jest.fn().mockResolvedValue(null),
+            listUsers: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: 'IUserBasicAuthRespository',
+          useValue: {
+            saveBasicAuth: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
@@ -34,6 +52,10 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     repository = module.get<IUserRepository>('IUserRepository');
+    cacheManager = module.get<Cache>('CACHE_MANAGER');
+    userBasicAuthRepository = module.get<IUserBasicAuthRespository>(
+      'IUserBasicAuthRespository',
+    );
   });
 
   it('should be defined', () => {
@@ -153,7 +175,15 @@ describe('AuthService', () => {
       brasileiro: true,
     };
 
-    jest.spyOn(repository, 'verifyEmail').mockResolvedValue(true);
+    jest.spyOn(repository, 'getUserByEmail').mockResolvedValue({
+      id: 1,
+      name: 'John Doe',
+      email: 'existing@example.com',
+      password: 'hashedPassword',
+      lastName: 'Smith',
+      document: '529.982.247-25',
+      isBrazilian: true,
+    });
 
     await expect(service.createUser(createUserDTO)).rejects.toThrow(
       'Email já cadastrado. Por favor, use outro email.',
@@ -180,12 +210,16 @@ describe('AuthService', () => {
       senha: 'WrongPassword',
     };
 
-    jest
-      .spyOn(repository, 'getHashedPassword')
-      .mockResolvedValue('hashedPassword');
-    jest
-      .spyOn(service, 'loginUser')
-      .mockRejectedValue(new Error('Senha incorreta'));
+    jest.spyOn(repository, 'getUserByEmail').mockResolvedValue({
+      id: 1,
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      password: 'hashedPassword',
+      lastName: 'Smith',
+      document: '529.982.247-25',
+      isBrazilian: true,
+    });
+    jest.spyOn(authUtils, 'comparePassword').mockResolvedValue(false);
 
     await expect(service.loginUser(userLoginDTO)).rejects.toThrow(
       'Senha incorreta',
@@ -198,15 +232,38 @@ describe('AuthService', () => {
       senha: 'Password1',
     };
 
+    jest.spyOn(repository, 'getUserByEmail').mockResolvedValue({
+      id: 1,
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      password: 'hashedPassword',
+      lastName: 'Smith',
+      document: '529.982.247-25',
+      isBrazilian: true,
+    });
+    jest.spyOn(authUtils, 'comparePassword').mockResolvedValue(true);
     jest
-      .spyOn(repository, 'getHashedPassword')
-      .mockResolvedValue('hashedPassword');
-    jest
-      .spyOn(service, 'loginUser')
-      .mockResolvedValue({ message: 'User logged in successfully' });
+      .spyOn(service, 'generateAndSaveBasicAuth')
+      .mockResolvedValue('am9obi5kb2VAZXhhbXBsZS5jb206UGFzc3dvcmQx');
 
     await expect(service.loginUser(userLoginDTO)).resolves.toEqual({
+      basic_auth: 'am9obi5kb2VAZXhhbXBsZS5jb206UGFzc3dvcmQx',
       message: 'User logged in successfully',
     });
+  });
+
+  it('deve gerar e salvar o base64 do basic auth corretamente', async () => {
+    const userId = 10;
+    const rawBasicAuth = 'john.doe@example.com:Password1';
+    const expectedBase64 = Buffer.from(rawBasicAuth).toString('base64');
+
+    const result = await service.generateAndSaveBasicAuth(userId, rawBasicAuth);
+
+    expect(result).toBe(expectedBase64);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(userBasicAuthRepository.saveBasicAuth).toHaveBeenCalledWith(
+      userId,
+      expectedBase64,
+    );
   });
 });

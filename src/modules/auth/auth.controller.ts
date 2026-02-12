@@ -22,16 +22,11 @@ export class AuthController {
 
   @Post('/login')
   async loginUser(@Body() userLoginDto: UserLoginDto, @Res() res: Response) {
-    try {
-      const result = await this.authService.loginUser(userLoginDto);
-      res
-        .status(HttpStatus.ACCEPTED)
-        .json({ message: result.message || 'User logged in successfully' });
-    } catch (error) {
-      res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: error ? error.message : 'Internal server error' });
-    }
+    const result = await this.authService.loginUser(userLoginDto);
+    res.status(HttpStatus.ACCEPTED).json({
+      basic_auth: result.basic_auth,
+      message: result.message || 'User logged in successfully',
+    });
   }
 
   @Get('/lista-usuarios')

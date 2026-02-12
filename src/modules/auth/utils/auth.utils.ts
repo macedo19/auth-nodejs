@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import { cpf } from 'cpf-cnpj-validator';
 import { isAlpha, isNumeric } from 'validator';
+import { Buffer } from 'buffer';
 
 function validateDocument(
   document: string,
@@ -37,9 +38,14 @@ async function comparePassword(
   return bcrypt.compare(password, hashedPassword);
 }
 
+function encodeBase64(data: string): string {
+  return Buffer.from(data).toString('base64');
+}
+
 export {
   encrypitPassword,
   comparePassword,
   validateDocument,
   validateDocumentRNE,
+  encodeBase64,
 };

@@ -1,4 +1,5 @@
 export interface IUser {
+  id?: number;
   name: string;
   lastName?: string;
   email: string;
@@ -17,6 +18,6 @@ export interface IUsersResponse {
 export interface IUserRepository {
   create(user: IUser): Promise<IUser | null>;
   verifyEmail(email: string): Promise<boolean>;
-  getHashedPassword(email: string): Promise<string>;
   listUsers(): Promise<IUsersResponse[]>;
+  getUserByEmail(email: string): Promise<IUser | null>;
 }
