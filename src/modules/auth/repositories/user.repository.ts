@@ -35,4 +35,16 @@ export class UserRepository implements IUserRepository {
       );
     }
   }
+
+  async getHashedPassword(email: string): Promise<string> {
+    try {
+      const rowUser = await this.userRepository.findOne({ where: { email } });
+      return rowUser ? rowUser.password : '';
+    } catch (error) {
+      throw new Error(
+        'Erro encontrar usuário por email: ' +
+          (error ? error.message : 'Erro desconhecido'),
+      );
+    }
+  }
 }
