@@ -10,6 +10,12 @@ export class UserListItemDto {
   @ApiProperty({ example: 'gabriel@email.com' })
   email: string;
 
+  @ApiProperty({ example: '12345678978' })
+  numero_documento: string;
+
+  @ApiProperty({ example: 'Sim' })
+  estrangeiro: string;
+
   @ApiProperty({ example: '2026-02-12T12:00:00.000Z' })
   cadastrado_em: Date;
 }

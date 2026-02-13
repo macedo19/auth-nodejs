@@ -25,7 +25,7 @@ export class User {
   password: string;
 
   @Column({ name: 'document', length: 20, type: 'varchar', nullable: true })
-  document?: string;
+  document: string;
 
   @Column({ name: 'is_brazilian', type: 'boolean', default: true })
   isBrazilian: boolean;
