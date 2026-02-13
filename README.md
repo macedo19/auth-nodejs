@@ -64,9 +64,13 @@ Porém localmente haverá a necessidade de iniciar pelo menos o container do Mys
 
 ## 6. Authentication Guide
 
-Esta API usa Basic Auth para rotas GET em /auth/* (inclui /auth/lista-usuarios e /auth/status).
+Esta API usa Basic Auth para rotas GET em /auth/lista-usuarios.
+
 
 Passo a passo:
+
+Obs: Recomendado utilziar via Postman, Insomnia ou outro programa que seja de fácil uso.
+Tanto o Insomnia quanto o Postman são fáceis de entender e utilziar o Authorization Basic: usuario:senha 😁
 
 1) Criar usuário em POST /auth/create
 2) Login: gere o token Basic com email:senha em Base64
