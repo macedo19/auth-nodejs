@@ -12,6 +12,7 @@ import type {
 } from './interfaces/user.interface';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import type { IUserBasicAuthRespository } from './interfaces/user-basic-auth.interface';
+import { ReponseListUsers } from './types/user-response.type';
 
 @Injectable()
 export class AuthService {
@@ -94,7 +95,7 @@ export class AuthService {
     return this.userBasicAuthRepository.existsByBasicAuth(token);
   }
 
-  async listUsers(): Promise<{ message: string; users: IUsersResponse[] }> {
+  async listUsers(): Promise<ReponseListUsers> {
     const cachedUsers =
       await this.cacheManager.get<IUsersResponse[]>('users_list');
     if (cachedUsers) {

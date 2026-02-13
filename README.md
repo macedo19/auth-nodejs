@@ -25,6 +25,12 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Autenticação (Basic Auth)
+
+Para consumir o endpoint GET de listagem de usuários, é obrigatório enviar o header Authorization com o esquema Basic. O token deve ser gerado a partir de email:senha e codificado em Base64. Exemplo de formato do header:
+
+Authorization: Basic <token>
+
 ## Project setup
 
 ```bash
