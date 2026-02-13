@@ -12,6 +12,8 @@ export interface IUsersResponse {
   nome: string;
   sobrenome?: string;
   email: string;
+  numero_documento: string;
+  estrangeiro: string;
   cadastrado_em: Date;
 }
 

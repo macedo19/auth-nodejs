@@ -49,6 +49,8 @@ export class UserRepository implements IUserRepository {
           nome: user.name,
           sobrenome: user.lastName,
           email: user.email,
+          numero_documento: user.document,
+          estrangeiro: user.isBrazilian ? 'Não' : 'Sim',
           cadastrado_em: user.createdAt,
         });
       }
