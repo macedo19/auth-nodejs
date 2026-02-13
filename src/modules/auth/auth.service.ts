@@ -19,7 +19,7 @@ export class AuthService {
   constructor(
     @Inject(CACHE_MANAGER) private gerenciadorCache: Cache,
     @Inject('IUserRepository')
-    private readonly repositorioUsuario: IUserRepository,
+    private readonly usuarioRepository: IUserRepository,
   ) {}
 
   async criarUsuario(
@@ -55,7 +55,7 @@ export class AuthService {
       brasileiro: criarUsuarioDTO.brasileiro ?? true,
     };
 
-    const usuarioCriado = await this.repositorioUsuario.criar(usuario);
+    const usuarioCriado = await this.usuarioRepository.criar(usuario);
 
     if (!usuarioCriado) {
       throw new BadRequestException(
@@ -68,12 +68,12 @@ export class AuthService {
 
   async verificarUsuarioExistente(email: string): Promise<IUser | null> {
     const usuarioExistente =
-      await this.repositorioUsuario.buscarUsuarioPorEmail(email);
+      await this.usuarioRepository.buscarUsuarioPorEmail(email);
     return usuarioExistente;
   }
 
   async autenticarUsuario(email: string, senha: string): Promise<boolean> {
-    const usuario = await this.repositorioUsuario.buscarUsuarioPorEmail(email);
+    const usuario = await this.usuarioRepository.buscarUsuarioPorEmail(email);
     if (!usuario) {
       return false;
     }
@@ -118,7 +118,7 @@ export class AuthService {
     }
 
     const usuarios: IUsersResponse[] =
-      await this.repositorioUsuario.listarUsuarios();
+      await this.usuarioRepository.listarUsuarios();
     await this.gerenciadorCache.set('lista_usuarios', usuarios);
     return {
       message: 'Usuários retornados com sucesso',

@@ -28,8 +28,23 @@ Variáveis principais:
 - DATABASE_NAME
 - DATABASE_ROOT_PASSWORD
 - DATABASE_SYNCHRONIZE
+- ENABLE_RATE_LIMITER
+- RATE_LIMITER_POINTS
+- RATE_LIMITER_DURATION
 
 Observação: o .env.example possui blocos para execução local e via Docker. Ajuste o DATABASE_HOST conforme o modo de execução.
+
+Se você não utilizar o container do MySQL (por já ter o MySQL instalado na máquina), informe as credenciais de conexão nas variáveis acima e mantenha DATABASE_SYNCHRONIZE como true.
+
+### Rate Limiter
+
+O rate limiter é opcional e controlado por variáveis de ambiente:
+
+- ENABLE_RATE_LIMITER: quando true, o rate limiter é ativado; qualquer outro valor mantém o rate limiter desativado.
+- RATE_LIMITER_POINTS: limite de requisições por período (default: 10).
+- RATE_LIMITER_DURATION: duração do período em ms (default: 60000).
+
+O rate limiter é aplicado na rota GET /auth/users.
 
 ## 4. Running the Project
 

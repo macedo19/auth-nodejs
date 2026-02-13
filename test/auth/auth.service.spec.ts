@@ -206,7 +206,7 @@ describe('AuthService', () => {
     };
 
     await expect(servico.criarUsuario(criarUsuarioDTO)).resolves.toEqual({
-      message: `User ${criarUsuarioDTO.nome} created successfully`,
+      message: `Usuário ${criarUsuarioDTO.nome} criado com sucesso`,
     });
   });
 
@@ -220,7 +220,7 @@ describe('AuthService', () => {
     };
 
     await expect(servico.criarUsuario(criarUsuarioDTO)).resolves.toEqual({
-      message: `User ${criarUsuarioDTO.nome} created successfully`,
+      message: `Usuário ${criarUsuarioDTO.nome} criado com sucesso`,
     });
   });
 
