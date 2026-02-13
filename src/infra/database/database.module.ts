@@ -17,7 +17,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           password: configBanco.password,
           database: configBanco.database,
           autoLoadEntities: true,
-          synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
+          synchronize:
+            String(process.env.DATABASE_SYNCHRONIZE).toLowerCase() === 'true',
           logging: false,
         };
       },

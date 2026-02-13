@@ -12,9 +12,14 @@ import {
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
 import { ReponseListUsers } from './types/user-response.type';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import {
+  rateLimiterConfig,
+  isEnabledRateLimiter,
+} from 'src/infra/rate-limit/rate-limiter.config';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -52,7 +57,8 @@ export class AuthController {
   }
 
   @Get('/users')
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) //Rate limit
+  @SkipThrottle({ default: isEnabledRateLimiter() })
+  @Throttle({ default: rateLimiterConfig })
   @ApiOperation({
     summary: 'Endpoint para listar todos os usuários',
     description:
@@ -73,6 +79,10 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({
     description: 'Credenciais inválidas ou ausentes',
+  })
+  @ApiTooManyRequestsResponse({
+    description:
+      'Muitas requisições feitas em um curto período de tempo. Tente novamente mais tarde.',
   })
   @CacheTTL(60)
   async listarUsuarios(@Res() res: Response) {
