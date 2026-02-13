@@ -31,20 +31,12 @@ async function encrypitPassword(password: string): Promise<string> {
   return hashPassword;
 }
 
-async function comparePassword(
-  password: string,
-  hashedPassword: string,
-): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword);
-}
-
 function encodeBase64(data: string): string {
   return Buffer.from(data).toString('base64');
 }
 
 export {
   encrypitPassword,
-  comparePassword,
   validateDocument,
   validateDocumentRNE,
   encodeBase64,

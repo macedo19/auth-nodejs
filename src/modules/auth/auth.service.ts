@@ -1,7 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
-  comparePassword,
   encodeBase64,
   encrypitPassword,
   validateDocument,
@@ -11,7 +10,6 @@ import type {
   IUserRepository,
   IUsersResponse,
 } from './interfaces/user.interface';
-import { UserLoginDto } from './dto/user-login.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import type { IUserBasicAuthRespository } from './interfaces/user-basic-auth.interface';
 
@@ -61,43 +59,17 @@ export class AuthService {
       );
     }
 
+    await this.generateAndSaveBasicAuth(
+      Number(userCreated.id),
+      `${createUserDTO.email}:${createUserDTO.senha}`,
+    );
+
     return { message: `User ${user.name} created successfully` };
   }
 
   async verifyUserExists(email: string): Promise<IUser | null> {
     const existsUser = await this.userRepository.getUserByEmail(email);
     return existsUser;
-  }
-
-  async loginUser(
-    userLoginDTO: UserLoginDto,
-  ): Promise<{ message: string; basic_auth: string }> {
-    const userExist = await this.verifyUserExists(userLoginDTO.email);
-    if (!userExist) {
-      throw new BadRequestException(
-        'Usuário não encontrado com o email fornecido.',
-      );
-    }
-    const passwordMatch = await comparePassword(
-      userLoginDTO.senha,
-      userExist.password,
-    );
-
-    if (!passwordMatch) {
-      throw new BadRequestException(
-        'Senha incorreta. Por favor, tente novamente.',
-      );
-    }
-
-    const bufferBasicAuth = await this.generateAndSaveBasicAuth(
-      Number(userExist.id),
-      `${userLoginDTO.email}:${userLoginDTO.senha}`,
-    );
-
-    return {
-      basic_auth: bufferBasicAuth,
-      message: 'User logged in successfully',
-    };
   }
 
   async generateAndSaveBasicAuth(
@@ -109,9 +81,32 @@ export class AuthService {
     return encodedBasicAuth;
   }
 
+  async validateBasicAuth(authorizationHeader?: string): Promise<boolean> {
+    if (!authorizationHeader) {
+      return false;
+    }
+
+    const [scheme, token] = authorizationHeader.split(' ');
+    if (scheme !== 'Basic' || !token) {
+      return false;
+    }
+
+    return this.userBasicAuthRepository.existsByBasicAuth(token);
+  }
+
   async listUsers(): Promise<{ message: string; users: IUsersResponse[] }> {
     try {
+      const cachedUsers =
+        await this.cacheManager.get<IUsersResponse[]>('users_list');
+      if (cachedUsers) {
+        return {
+          message: 'Users retrieved successfully (from cache)',
+          users: cachedUsers,
+        };
+      }
+
       const users: IUsersResponse[] = await this.userRepository.listUsers();
+      await this.cacheManager.set('users_list', users);
       return {
         message: 'Users retrieved successfully',
         users,

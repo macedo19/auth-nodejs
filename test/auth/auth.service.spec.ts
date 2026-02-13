@@ -5,7 +5,6 @@ import {
   encrypitPassword,
   validateDocument,
 } from '../../src/modules/auth/utils/auth.utils';
-import * as authUtils from '../../src/modules/auth/utils/auth.utils';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { CreateUserDto } from '../../src/modules/auth/dto/create-user.dto';
@@ -15,7 +14,6 @@ import type { IUserBasicAuthRespository } from '../../src/modules/auth/interface
 describe('AuthService', () => {
   let service: AuthService;
   let repository: IUserRepository;
-  let cacheManager: Cache;
   let userBasicAuthRepository: IUserBasicAuthRespository;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -52,7 +50,6 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     repository = module.get<IUserRepository>('IUserRepository');
-    cacheManager = module.get<Cache>('CACHE_MANAGER');
     userBasicAuthRepository = module.get<IUserBasicAuthRespository>(
       'IUserBasicAuthRespository',
     );
@@ -202,54 +199,6 @@ describe('AuthService', () => {
     await expect(encrypitPassword(createUserDTO.senha)).resolves.not.toBe(
       createUserDTO.senha,
     );
-  });
-
-  it('deve lançar um erro ao fazer login com senha incorreta', async () => {
-    const userLoginDTO = {
-      email: 'john.doe@example.com',
-      senha: 'WrongPassword',
-    };
-
-    jest.spyOn(repository, 'getUserByEmail').mockResolvedValue({
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      password: 'hashedPassword',
-      lastName: 'Smith',
-      document: '529.982.247-25',
-      isBrazilian: true,
-    });
-    jest.spyOn(authUtils, 'comparePassword').mockResolvedValue(false);
-
-    await expect(service.loginUser(userLoginDTO)).rejects.toThrow(
-      'Senha incorreta',
-    );
-  });
-
-  it('deve fazer login com sucesso caso a senha esteja correta', async () => {
-    const userLoginDTO = {
-      email: 'john.doe@example.com',
-      senha: 'Password1',
-    };
-
-    jest.spyOn(repository, 'getUserByEmail').mockResolvedValue({
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      password: 'hashedPassword',
-      lastName: 'Smith',
-      document: '529.982.247-25',
-      isBrazilian: true,
-    });
-    jest.spyOn(authUtils, 'comparePassword').mockResolvedValue(true);
-    jest
-      .spyOn(service, 'generateAndSaveBasicAuth')
-      .mockResolvedValue('am9obi5kb2VAZXhhbXBsZS5jb206UGFzc3dvcmQx');
-
-    await expect(service.loginUser(userLoginDTO)).resolves.toEqual({
-      basic_auth: 'am9obi5kb2VAZXhhbXBsZS5jb206UGFzc3dvcmQx',
-      message: 'User logged in successfully',
-    });
   });
 
   it('deve gerar e salvar o base64 do basic auth corretamente', async () => {

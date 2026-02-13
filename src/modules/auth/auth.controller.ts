@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Res, HttpStatus } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthService } from './auth.service';
-import { UserLoginDto } from './dto/user-login.dto';
+import { CacheTTL } from '@nestjs/cache-manager';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -20,16 +20,8 @@ export class AuthController {
       .json({ message: result.message || 'User created successfully' });
   }
 
-  @Post('/login')
-  async loginUser(@Body() userLoginDto: UserLoginDto, @Res() res: Response) {
-    const result = await this.authService.loginUser(userLoginDto);
-    res.status(HttpStatus.ACCEPTED).json({
-      basic_auth: result.basic_auth,
-      message: result.message || 'User logged in successfully',
-    });
-  }
-
   @Get('/lista-usuarios')
+  @CacheTTL(60)
   async listUsers(@Res() res: Response) {
     try {
       const result = await this.authService.listUsers();
