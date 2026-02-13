@@ -1,6 +1,6 @@
 ## 1. Project Description
 
-API de autenticação e gerenciamento de usuários para teste técnico. Permite criar usuários, gerar credenciais em Basic Auth e listar usuários com proteção por autenticação.
+API de autenticação básica e gerenciamento de usuários para teste técnico. Permite cadastrar usuários e listar usuários com proteção via Basic Auth.
 
 ## 2. Tech Stack
 
@@ -21,17 +21,15 @@ cp .env.example .env
 
 Variáveis principais:
 
-- DATABASE_HOST: host do MySQL (use mysql ao rodar via Docker)
-- DATABASE_PORT: porta do MySQL
-- DATABASE_USERNAME: usuário do MySQL
-- DATABASE_PASSWORD: senha do MySQL
-- DATABASE_NAME: nome do banco
-- DATABASE_ROOT_PASSWORD: senha do root (usado no container)
-- DATABASE_SYNCHRONIZE: true para sincronizar entidades (desenvolvimento)
+- DATABASE_HOST
+- DATABASE_PORT
+- DATABASE_USERNAME
+- DATABASE_PASSWORD
+- DATABASE_NAME
+- DATABASE_ROOT_PASSWORD
+- DATABASE_SYNCHRONIZE
 
-Opcional:
-
-- PORT: porta do servidor (padrão 3000)
+Observação: o .env.example possui blocos para execução local e via Docker. Ajuste o DATABASE_HOST conforme o modo de execução.
 
 ## 4. Running the Project
 
@@ -55,7 +53,7 @@ npm install
 
 npm run start:dev
 
-Porém localmente haverá a necessidade de iniciar pelo menos o container do Mysql
+Para rodar local, o MySQL precisa estar ativo (pode subir apenas o serviço mysql no Docker).
 
 ## 5. Accessing the API
 
@@ -64,19 +62,15 @@ Porém localmente haverá a necessidade de iniciar pelo menos o container do Mys
 
 ## 6. Authentication Guide
 
-Esta API usa Basic Auth para rotas GET em /auth/lista-usuarios.
-
+Esta API usa Basic Auth para a rota GET /auth/users.
 
 Passo a passo:
 
-Obs: Recomendado utilziar via Postman, Insomnia ou outro programa que seja de fácil uso.
-Tanto o Insomnia quanto o Postman são fáceis de entender e utilziar o Authorization Basic: usuario:senha 😁
-
-1) Criar usuário em POST /auth/create
-2) Login: gere o token Basic com email:senha em Base64
+1) Crie o usuário em POST /auth/users
+2) Gere o token Basic com email:senha em Base64
 3) Copie o token
 4) Autorize no Swagger (Authorize) usando “BasicAuth”
-5) Chame as rotas protegidas
+5) Chame a rota protegida
 
 Gerar token (exemplo):
 
@@ -90,7 +84,7 @@ Authorization: Basic <token>
 
 Criar usuário:
 
-curl -X POST http://localhost:3000/auth/create \
+curl -X POST http://localhost:3000/auth/users \
   -H "Content-Type: application/json" \
   -d '{
     "nome": "Gabriel",
@@ -101,15 +95,13 @@ curl -X POST http://localhost:3000/auth/create \
     "brasileiro": true
   }'
 
-O parametro documento pode seguir o formato de CPF ou RNE (documento estrangeiro : A123456)
-
 Login (gerar Basic Auth):
 
 echo -n "gabriel@email.com:Senha123" | base64
 
 Rota protegida (lista usuários):
 
-curl -X GET http://localhost:3000/auth/lista-usuarios \
+curl -X GET http://localhost:3000/auth/users \
   -H "Authorization: Basic <token>"
 
 ## 8. Useful Scripts

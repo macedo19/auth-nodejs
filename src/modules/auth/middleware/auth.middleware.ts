@@ -11,11 +11,11 @@ export class AuthMiddleware implements NestMiddleware {
   constructor(private readonly authService: AuthService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    const isValid = await this.authService.validateBasicAuth(
+    const credenciaisValidas = await this.authService.validarAutenticacaoBasica(
       req.headers.authorization,
     );
 
-    if (!isValid) {
+    if (!credenciaisValidas) {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 

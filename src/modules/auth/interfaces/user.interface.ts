@@ -1,11 +1,11 @@
 export interface IUser {
   id?: number;
-  name: string;
-  lastName?: string;
+  nome: string;
+  sobrenome?: string;
   email: string;
-  password: string;
-  document: string;
-  isBrazilian: boolean;
+  senha: string;
+  documento: string;
+  brasileiro: boolean;
 }
 
 export interface IUsersResponse {
@@ -18,8 +18,8 @@ export interface IUsersResponse {
 }
 
 export interface IUserRepository {
-  create(user: IUser): Promise<IUser | null>;
-  verifyEmail(email: string): Promise<boolean>;
-  listUsers(): Promise<IUsersResponse[]>;
-  getUserByEmail(email: string): Promise<IUser | null>;
+  criar(usuario: IUser): Promise<IUser | null>;
+  verificarEmail(email: string): Promise<boolean>;
+  listarUsuarios(): Promise<IUsersResponse[]>;
+  buscarUsuarioPorEmail(email: string): Promise<IUser | null>;
 }
