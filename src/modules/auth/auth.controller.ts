@@ -20,11 +20,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('/status')
-  getStatus() {
+  obterStatus() {
     return { status: 'is Alive !!' };
   }
 
-  @Post('/create')
+  @Post('/users')
   @ApiOperation({
     summary: 'Endpoint para criar um novo usuário',
     description:
@@ -40,14 +40,17 @@ export class AuthController {
   @ApiBadRequestResponse({
     description: 'Erro de validação ou regra de negócio',
   })
-  async createUser(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
-    const result = await this.authService.createUser(createUserDto);
+  async criarUsuario(
+    @Body() criarUsuarioDto: CreateUserDto,
+    @Res() res: Response,
+  ) {
+    const resultado = await this.authService.criarUsuario(criarUsuarioDto);
     res
       .status(HttpStatus.CREATED)
-      .json({ message: result.message || 'User created successfully' });
+      .json({ message: resultado.message || 'User created successfully' });
   }
 
-  @Get('/lista-usuarios')
+  @Get('/users')
   @ApiOperation({
     summary: 'Endpoint para listar todos os usuários',
     description:
@@ -70,8 +73,8 @@ export class AuthController {
     description: 'Credenciais inválidas ou ausentes',
   })
   @CacheTTL(60)
-  async listUsers(@Res() res: Response) {
-    const result: ReponseListUsers = await this.authService.listUsers();
-    res.status(HttpStatus.OK).json(result);
+  async listarUsuarios(@Res() res: Response) {
+    const resultado: ReponseListUsers = await this.authService.listarUsuarios();
+    res.status(HttpStatus.OK).json(resultado);
   }
 }

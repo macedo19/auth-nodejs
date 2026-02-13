@@ -4,21 +4,15 @@ import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { UserRepository } from './repositories/user.repository';
-import { UserBasicAuth } from './entity/users-basic-auth.entity';
-import { UserBasicAuthRepository } from './repositories/user-basic-auth.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserBasicAuth], 'mysql')],
+  imports: [TypeOrmModule.forFeature([User], 'mysql')],
   controllers: [AuthController],
   providers: [
     AuthService,
     {
       provide: 'IUserRepository',
       useClass: UserRepository,
-    },
-    {
-      provide: 'IUserBasicAuthRespository',
-      useClass: UserBasicAuthRepository,
     },
   ],
   exports: [AuthService],

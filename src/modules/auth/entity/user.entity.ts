@@ -1,44 +1,31 @@
-import {
-  BeforeInsert,
-  Column,
-  Entity,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { UserBasicAuth } from './users-basic-auth.entity';
-
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 100, type: 'varchar' })
-  name: string;
+  @Column({ name: 'name', length: 100, type: 'varchar' })
+  nome: string;
 
   @Column({ name: 'last_name', length: 100, type: 'varchar', nullable: true })
-  lastName?: string;
+  sobrenome?: string;
 
-  @Column({ length: 100, type: 'varchar' })
+  @Column({ name: 'email', length: 100, type: 'varchar' })
   email: string;
 
-  @Column({ length: 100, type: 'varchar' })
-  password: string;
+  @Column({ name: 'password', length: 100, type: 'varchar' })
+  senha: string;
 
   @Column({ name: 'document', length: 20, type: 'varchar', nullable: true })
-  document: string;
+  documento: string;
 
   @Column({ name: 'is_brazilian', type: 'boolean', default: true })
-  isBrazilian: boolean;
+  brasileiro: boolean;
 
-  @Column({ type: 'timestamp' })
-  createdAt: Date;
+  @Column({ name: 'created_at', type: 'timestamp' })
+  criadoEm: Date;
 
-  @BeforeInsert() setCreatedAt() {
-    this.createdAt = new Date();
+  @BeforeInsert() definirCriadoEm() {
+    this.criadoEm = new Date();
   }
-
-  @OneToOne(() => UserBasicAuth, (userBasicAuth) => userBasicAuth.user, {
-    cascade: true,
-  })
-  userBasicAuth: UserBasicAuth;
 }

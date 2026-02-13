@@ -7,7 +7,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const config = new DocumentBuilder()
+  const configuracaoSwagger = new DocumentBuilder()
     .setTitle('Auth API')
     .setDescription(
       'API de autenticação e gerenciamento de usuários - Teste Técnico',
@@ -16,8 +16,11 @@ async function bootstrap() {
     .addBasicAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const documentoSwagger = SwaggerModule.createDocument(
+    app,
+    configuracaoSwagger,
+  );
+  SwaggerModule.setup('api', app, documentoSwagger);
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -12,49 +12,51 @@ import { Repository } from 'typeorm';
 export class UserRepository implements IUserRepository {
   constructor(
     @InjectRepository(User, 'mysql')
-    private readonly userRepository: Repository<User>,
+    private readonly repositorioUsuario: Repository<User>,
   ) {}
 
-  async create(user: IUser): Promise<IUser | null> {
+  async criar(usuario: IUser): Promise<IUser | null> {
     try {
-      const newUser = this.userRepository.create(user);
-      await this.userRepository.save(newUser);
-      return newUser as IUser;
+      const novoUsuario = this.repositorioUsuario.create(usuario);
+      await this.repositorioUsuario.save(novoUsuario);
+      return novoUsuario as IUser;
     } catch (error) {
       throw new InternalServerErrorException(
-        'Erro encontrado ao criar usuário: ' +
+        'Erro ao criar usuário: ' +
           (error ? error.message : 'Erro desconhecido'),
       );
     }
   }
 
-  async verifyEmail(email: string): Promise<boolean> {
+  async verificarEmail(email: string): Promise<boolean> {
     try {
-      const rowUser = await this.userRepository.findOne({ where: { email } });
-      return !!rowUser;
+      const usuarioEncontrado = await this.repositorioUsuario.findOne({
+        where: { email },
+      });
+      return !!usuarioEncontrado;
     } catch (error) {
       throw new InternalServerErrorException(
-        'Erro encontrar usuário por email: ' +
+        'Erro ao buscar usuário por email: ' +
           (error ? error.message : 'Erro desconhecido'),
       );
     }
   }
 
-  async listUsers(): Promise<IUsersResponse[]> {
+  async listarUsuarios(): Promise<IUsersResponse[]> {
     try {
-      const users = await this.userRepository.find();
-      const result: IUsersResponse[] = [];
-      for (const user of users) {
-        result.push({
-          nome: user.name,
-          sobrenome: user.lastName,
-          email: user.email,
-          numero_documento: user.document,
-          estrangeiro: user.isBrazilian ? 'Não' : 'Sim',
-          cadastrado_em: user.createdAt,
+      const usuarios = await this.repositorioUsuario.find();
+      const resultado: IUsersResponse[] = [];
+      for (const usuario of usuarios) {
+        resultado.push({
+          nome: usuario.nome,
+          sobrenome: usuario.sobrenome,
+          email: usuario.email,
+          numero_documento: usuario.documento,
+          estrangeiro: usuario.brasileiro ? 'No' : 'Yes',
+          cadastrado_em: usuario.criadoEm,
         });
       }
-      return result;
+      return resultado;
     } catch (error) {
       throw new InternalServerErrorException(
         'Erro ao listar usuários: ' +
@@ -63,13 +65,15 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async getUserByEmail(email: string): Promise<IUser | null> {
+  async buscarUsuarioPorEmail(email: string): Promise<IUser | null> {
     try {
-      const rowUser = await this.userRepository.findOne({ where: { email } });
-      return rowUser ? (rowUser as IUser) : null;
+      const usuarioEncontrado = await this.repositorioUsuario.findOne({
+        where: { email },
+      });
+      return usuarioEncontrado ? (usuarioEncontrado as IUser) : null;
     } catch (error) {
       throw new InternalServerErrorException(
-        'Erro encontrar usuário por email: ' +
+        'Erro ao buscar usuário por email: ' +
           (error ? error.message : 'Erro desconhecido'),
       );
     }

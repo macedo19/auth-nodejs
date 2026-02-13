@@ -1,9 +1,10 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
-  encodeBase64,
-  encrypitPassword,
-  validateDocument,
+  gerarHashSenha,
+  validarDocumento,
+  decodificarBase64,
+  compararSenha,
 } from './utils/auth.utils';
 import type {
   IUser,
@@ -11,105 +12,117 @@ import type {
   IUsersResponse,
 } from './interfaces/user.interface';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import type { IUserBasicAuthRespository } from './interfaces/user-basic-auth.interface';
 import { ReponseListUsers } from './types/user-response.type';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @Inject('IUserRepository') private readonly userRepository: IUserRepository,
-    @Inject('IUserBasicAuthRespository')
-    private readonly userBasicAuthRepository: IUserBasicAuthRespository,
+    @Inject(CACHE_MANAGER) private gerenciadorCache: Cache,
+    @Inject('IUserRepository')
+    private readonly repositorioUsuario: IUserRepository,
   ) {}
 
-  async createUser(createUserDTO: CreateUserDto): Promise<{ message: string }> {
-    const existsUser = await this.verifyUserExists(createUserDTO.email);
+  async criarUsuario(
+    criarUsuarioDTO: CreateUserDto,
+  ): Promise<{ message: string }> {
+    const usuarioExistente = await this.verificarUsuarioExistente(
+      criarUsuarioDTO.email,
+    );
 
-    if (existsUser) {
+    if (usuarioExistente) {
       throw new BadRequestException(
         'Email já cadastrado. Por favor, use outro email.',
       );
     }
 
-    const isValidDocument = validateDocument(
-      createUserDTO.documento,
-      createUserDTO.brasileiro ?? true,
+    const documentoValido = validarDocumento(
+      criarUsuarioDTO.documento,
+      criarUsuarioDTO.brasileiro ?? true,
     );
 
-    if (!isValidDocument) {
+    if (!documentoValido) {
       throw new BadRequestException(
         'Documento inválido. Por favor, forneça um documento válido no formato de CPF ou RNE.',
       );
     }
 
-    const user: IUser = {
-      name: createUserDTO.nome,
-      lastName: createUserDTO.sobrenome,
-      email: createUserDTO.email,
-      password: await encrypitPassword(createUserDTO.senha),
-      document: createUserDTO.documento,
-      isBrazilian: createUserDTO.brasileiro ?? true,
+    const usuario: IUser = {
+      nome: criarUsuarioDTO.nome,
+      sobrenome: criarUsuarioDTO.sobrenome,
+      email: criarUsuarioDTO.email,
+      senha: await gerarHashSenha(criarUsuarioDTO.senha),
+      documento: criarUsuarioDTO.documento,
+      brasileiro: criarUsuarioDTO.brasileiro ?? true,
     };
 
-    const userCreated = await this.userRepository.create(user);
+    const usuarioCriado = await this.repositorioUsuario.criar(usuario);
 
-    if (!userCreated) {
+    if (!usuarioCriado) {
       throw new BadRequestException(
         'Erro ao criar usuário. Por favor, tente novamente.',
       );
     }
 
-    await this.generateAndSaveBasicAuth(
-      Number(userCreated.id),
-      `${createUserDTO.email}:${createUserDTO.senha}`,
-    );
-
-    return { message: `User ${user.name} created successfully` };
+    return { message: `Usuário ${usuario.nome} criado com sucesso` };
   }
 
-  async verifyUserExists(email: string): Promise<IUser | null> {
-    const existsUser = await this.userRepository.getUserByEmail(email);
-    return existsUser;
+  async verificarUsuarioExistente(email: string): Promise<IUser | null> {
+    const usuarioExistente =
+      await this.repositorioUsuario.buscarUsuarioPorEmail(email);
+    return usuarioExistente;
   }
 
-  async generateAndSaveBasicAuth(
-    userId: number,
-    basicAuth: string,
-  ): Promise<string> {
-    const encodedBasicAuth = encodeBase64(basicAuth);
-    await this.userBasicAuthRepository.saveBasicAuth(userId, encodedBasicAuth);
-    return encodedBasicAuth;
-  }
-
-  async validateBasicAuth(authorizationHeader?: string): Promise<boolean> {
-    if (!authorizationHeader) {
+  async autenticarUsuario(email: string, senha: string): Promise<boolean> {
+    const usuario = await this.repositorioUsuario.buscarUsuarioPorEmail(email);
+    if (!usuario) {
       return false;
     }
 
-    const [scheme, token] = authorizationHeader.split(' ');
-    if (scheme !== 'Basic' || !token) {
+    const senhaValida = await compararSenha(senha, usuario.senha);
+    if (!senhaValida) {
       return false;
     }
 
-    return this.userBasicAuthRepository.existsByBasicAuth(token);
+    return true;
   }
 
-  async listUsers(): Promise<ReponseListUsers> {
-    const cachedUsers =
-      await this.cacheManager.get<IUsersResponse[]>('users_list');
-    if (cachedUsers) {
+  async validarAutenticacaoBasica(
+    cabecalhoAutorizacao?: string,
+  ): Promise<boolean> {
+    if (!cabecalhoAutorizacao) {
+      return false;
+    }
+
+    const [esquema, token] = cabecalhoAutorizacao.split(' ');
+    if (esquema !== 'Basic' || !token) {
+      return false;
+    }
+
+    const tokenDecodificado = decodificarBase64(token);
+    if (!tokenDecodificado.includes(':')) {
+      return false;
+    }
+    const [email, senha] = tokenDecodificado.split(':');
+
+    return this.autenticarUsuario(email, senha);
+  }
+
+  async listarUsuarios(): Promise<ReponseListUsers> {
+    const usuariosEmCache =
+      await this.gerenciadorCache.get<IUsersResponse[]>('lista_usuarios');
+    if (usuariosEmCache) {
       return {
-        message: 'Users retrieved successfully (from cache)',
-        users: cachedUsers,
+        message: 'Usuários retornados com sucesso (uso do cache)',
+        users: usuariosEmCache,
       };
     }
 
-    const users: IUsersResponse[] = await this.userRepository.listUsers();
-    await this.cacheManager.set('users_list', users);
+    const usuarios: IUsersResponse[] =
+      await this.repositorioUsuario.listarUsuarios();
+    await this.gerenciadorCache.set('lista_usuarios', usuarios);
     return {
-      message: 'Users retrieved successfully',
-      users,
+      message: 'Usuários retornados com sucesso',
+      users: usuarios,
     };
   }
 }

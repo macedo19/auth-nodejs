@@ -3,8 +3,8 @@ import { AuthController } from '../../src/modules/auth/auth.controller';
 import { AuthService } from '../../src/modules/auth/auth.service';
 
 describe('AuthController', () => {
-  let controller: AuthController;
-  let service: AuthService;
+  let controlador: AuthController;
+  let servico: AuthService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,33 +21,27 @@ describe('AuthController', () => {
         {
           provide: 'IUserRepository',
           useValue: {
-            create: jest.fn().mockResolvedValue({
-              name: 'John Doe',
+            criar: jest.fn().mockResolvedValue({
+              nome: 'John Doe',
               email: 'john.doe@example.com',
-              password: 'hashedPassword',
-              lastName: 'Smith',
+              senha: 'hashedPassword',
+              sobrenome: 'Smith',
             }),
-            getUserByEmail: jest.fn().mockResolvedValue(null),
-          },
-        },
-        {
-          provide: 'IUserBasicAuthRespository',
-          useValue: {
-            saveBasicAuth: jest.fn().mockResolvedValue(undefined),
+            buscarUsuarioPorEmail: jest.fn().mockResolvedValue(null),
           },
         },
       ],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
-    service = module.get<AuthService>(AuthService);
+    controlador = module.get<AuthController>(AuthController);
+    servico = module.get<AuthService>(AuthService);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(controlador).toBeDefined();
   });
 
   it('should have AuthService defined', () => {
-    expect(service).toBeDefined();
+    expect(servico).toBeDefined();
   });
 });

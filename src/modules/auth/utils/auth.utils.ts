@@ -3,41 +3,51 @@ import { cpf } from 'cpf-cnpj-validator';
 import { isAlpha, isNumeric } from 'validator';
 import { Buffer } from 'buffer';
 
-function validateDocument(
-  document: string,
-  is_brasileiro: boolean = true,
+function validarDocumento(
+  documento: string,
+  brasileiro: boolean = true,
 ): boolean {
-  const isValidDocument = is_brasileiro
-    ? cpf.isValid(document)
-    : validateDocumentRNE(document);
-  return isValidDocument;
+  const documentoValido = brasileiro
+    ? cpf.isValid(documento)
+    : validarDocumentoRNE(documento);
+  return documentoValido;
 }
 
-function validateDocumentRNE(document: string): boolean {
-  const rneFormated = document.replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
-  if (rneFormated.length !== 7) {
+function validarDocumentoRNE(documento: string): boolean {
+  const rneFormatado = documento.replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+  if (rneFormatado.length !== 7) {
     return false;
   }
 
-  const firstTwo = rneFormated.substring(0, 1);
-  const lastSix = rneFormated.substring(1);
+  const primeiroCaractere = rneFormatado.substring(0, 1);
+  const ultimosSeis = rneFormatado.substring(1);
 
-  return isAlpha(firstTwo) && isNumeric(lastSix, { no_symbols: true });
+  return (
+    isAlpha(primeiroCaractere) && isNumeric(ultimosSeis, { no_symbols: true })
+  );
 }
 
-async function encrypitPassword(password: string): Promise<string> {
-  const salt = 10;
-  const hashPassword = await bcrypt.hash(password, salt);
-  return hashPassword;
+async function gerarHashSenha(senha: string): Promise<string> {
+  const sal = 10;
+  const senhaComHash = await bcrypt.hash(senha, sal);
+  return senhaComHash;
 }
 
-function encodeBase64(data: string): string {
-  return Buffer.from(data).toString('base64');
+async function compararSenha(
+  senha: string,
+  senhaComHash: string,
+): Promise<boolean> {
+  return bcrypt.compare(senha, senhaComHash);
+}
+
+function decodificarBase64(dadoCodificado: string): string {
+  return Buffer.from(dadoCodificado, 'base64').toString('utf-8');
 }
 
 export {
-  encrypitPassword,
-  validateDocument,
-  validateDocumentRNE,
-  encodeBase64,
+  gerarHashSenha,
+  compararSenha,
+  validarDocumento,
+  validarDocumentoRNE,
+  decodificarBase64,
 };
