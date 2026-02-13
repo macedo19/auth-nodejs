@@ -53,6 +53,7 @@ docker compose down -v
 
 npm install
 npm run start:dev
+Porém localmente haverá a necessidade de iniciar pelo menos o container do Mysql
 
 ## 5. Accessing the API
 
