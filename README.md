@@ -34,6 +34,8 @@ Variáveis principais:
 
 Observação: o .env.example possui blocos para execução local e via Docker. Ajuste o DATABASE_HOST conforme o modo de execução.
 
+Se você não utilizar o container do MySQL (por já ter o MySQL instalado na máquina), informe as credenciais de conexão nas variáveis acima e mantenha DATABASE_SYNCHRONIZE como true.
+
 ### Rate Limiter
 
 O rate limiter é opcional e controlado por variáveis de ambiente:
