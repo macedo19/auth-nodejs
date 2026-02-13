@@ -14,6 +14,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ReponseListUsers } from './types/user-response.type';
+import { Throttle } from '@nestjs/throttler';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -51,6 +52,7 @@ export class AuthController {
   }
 
   @Get('/users')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) //Rate limit
   @ApiOperation({
     summary: 'Endpoint para listar todos os usuários',
     description:
