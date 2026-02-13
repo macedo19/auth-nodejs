@@ -12,13 +12,13 @@ import { Repository } from 'typeorm';
 export class UserRepository implements IUserRepository {
   constructor(
     @InjectRepository(User, 'mysql')
-    private readonly repositorioUsuario: Repository<User>,
+    private readonly usuarioRepository: Repository<User>,
   ) {}
 
   async criar(usuario: IUser): Promise<IUser | null> {
     try {
-      const novoUsuario = this.repositorioUsuario.create(usuario);
-      await this.repositorioUsuario.save(novoUsuario);
+      const novoUsuario = this.usuarioRepository.create(usuario);
+      await this.usuarioRepository.save(novoUsuario);
       return novoUsuario as IUser;
     } catch (error) {
       throw new InternalServerErrorException(
@@ -30,7 +30,7 @@ export class UserRepository implements IUserRepository {
 
   async verificarEmail(email: string): Promise<boolean> {
     try {
-      const usuarioEncontrado = await this.repositorioUsuario.findOne({
+      const usuarioEncontrado = await this.usuarioRepository.findOne({
         where: { email },
       });
       return !!usuarioEncontrado;
@@ -44,7 +44,7 @@ export class UserRepository implements IUserRepository {
 
   async listarUsuarios(): Promise<IUsersResponse[]> {
     try {
-      const usuarios = await this.repositorioUsuario.find();
+      const usuarios = await this.usuarioRepository.find();
       const resultado: IUsersResponse[] = [];
       for (const usuario of usuarios) {
         resultado.push({
@@ -52,7 +52,7 @@ export class UserRepository implements IUserRepository {
           sobrenome: usuario.sobrenome,
           email: usuario.email,
           numero_documento: usuario.documento,
-          estrangeiro: usuario.brasileiro ? 'No' : 'Yes',
+          estrangeiro: usuario.brasileiro ? 'Não' : 'Sim',
           cadastrado_em: usuario.criadoEm,
         });
       }
@@ -67,7 +67,7 @@ export class UserRepository implements IUserRepository {
 
   async buscarUsuarioPorEmail(email: string): Promise<IUser | null> {
     try {
-      const usuarioEncontrado = await this.repositorioUsuario.findOne({
+      const usuarioEncontrado = await this.usuarioRepository.findOne({
         where: { email },
       });
       return usuarioEncontrado ? (usuarioEncontrado as IUser) : null;
