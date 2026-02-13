@@ -22,6 +22,12 @@ async function bootstrap() {
   );
   SwaggerModule.setup('api', app, documentoSwagger);
 
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,POST',
+    allowedHeaders: 'Content-Type, Accept',
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
