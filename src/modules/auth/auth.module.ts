@@ -21,5 +21,6 @@ import { UserBasicAuthRepository } from './repositories/user-basic-auth.reposito
       useClass: UserBasicAuthRepository,
     },
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}

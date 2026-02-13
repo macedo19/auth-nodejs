@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -7,6 +12,7 @@ import { DatabaseConfig } from 'src/infra/database/database.config';
 import 'dotenv/config';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { AuthMiddleware } from 'src/modules/auth/middleware/auth.middleware';
 
 @Module({
   imports: [
@@ -21,6 +27,12 @@ import { CacheModule } from '@nestjs/cache-manager';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuthMiddleware],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes({ path: 'auth/*', method: RequestMethod.GET });
+  }
+}

@@ -40,18 +40,6 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async getHashedPassword(email: string): Promise<string> {
-    try {
-      const rowUser = await this.userRepository.findOne({ where: { email } });
-      return rowUser ? rowUser.password : '';
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Erro encontrar usuário por email: ' +
-          (error ? error.message : 'Erro desconhecido'),
-      );
-    }
-  }
-
   async listUsers(): Promise<IUsersResponse[]> {
     try {
       const users = await this.userRepository.find();
