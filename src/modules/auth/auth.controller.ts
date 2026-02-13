@@ -15,11 +15,8 @@ import {
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
 import { ReponseListUsers } from './types/user-response.type';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import {
-  rateLimiterConfig,
-  isEnabledRateLimiter,
-} from 'src/infra/rate-limit/rate-limiter.config';
+import { SkipThrottle } from '@nestjs/throttler';
+import { isEnabledRateLimiter } from 'src/infra/rate-limit/rate-limiter.config';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -58,7 +55,6 @@ export class AuthController {
 
   @Get('/users')
   @SkipThrottle({ default: isEnabledRateLimiter() })
-  @Throttle({ default: rateLimiterConfig })
   @ApiOperation({
     summary: 'Endpoint para listar todos os usuários',
     description:
