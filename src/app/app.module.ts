@@ -13,6 +13,8 @@ import 'dotenv/config';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AuthMiddleware } from 'src/modules/auth/middleware/auth.middleware';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -23,11 +25,26 @@ import { AuthMiddleware } from 'src/modules/auth/middleware/auth.middleware';
     CacheModule.register({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
     InfraModule,
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthMiddleware],
+  providers: [
+    AppService,
+    AuthMiddleware,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
