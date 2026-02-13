@@ -101,6 +101,8 @@ curl -X POST http://localhost:3000/auth/create \
     "brasileiro": true
   }'
 
+O parametro documento pode seguir o formato de CPF ou RNE (documento estrangeiro : A123456)
+
 Login (gerar Basic Auth):
 
 echo -n "gabriel@email.com:Senha123" | base64
@@ -123,3 +125,4 @@ curl -X GET http://localhost:3000/auth/lista-usuarios \
 - Porta em uso: altere PORT ou libere a porta 3000
 - Banco não sobe: verifique Docker e credenciais do MySQL
 - Falha no container: rode docker compose down -v e suba novamente
+
