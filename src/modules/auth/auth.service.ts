@@ -95,27 +95,20 @@ export class AuthService {
   }
 
   async listUsers(): Promise<{ message: string; users: IUsersResponse[] }> {
-    try {
-      const cachedUsers =
-        await this.cacheManager.get<IUsersResponse[]>('users_list');
-      if (cachedUsers) {
-        return {
-          message: 'Users retrieved successfully (from cache)',
-          users: cachedUsers,
-        };
-      }
-
-      const users: IUsersResponse[] = await this.userRepository.listUsers();
-      await this.cacheManager.set('users_list', users);
+    const cachedUsers =
+      await this.cacheManager.get<IUsersResponse[]>('users_list');
+    if (cachedUsers) {
       return {
-        message: 'Users retrieved successfully',
-        users,
+        message: 'Users retrieved successfully (from cache)',
+        users: cachedUsers,
       };
-    } catch (error) {
-      throw new Error(
-        'Erro ao listar usuários: ' +
-          (error ? error.message : 'Erro desconhecido'),
-      );
     }
+
+    const users: IUsersResponse[] = await this.userRepository.listUsers();
+    await this.cacheManager.set('users_list', users);
+    return {
+      message: 'Users retrieved successfully',
+      users,
+    };
   }
 }

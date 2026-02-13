@@ -23,16 +23,10 @@ export class AuthController {
   @Get('/lista-usuarios')
   @CacheTTL(60)
   async listUsers(@Res() res: Response) {
-    try {
-      const result = await this.authService.listUsers();
-      res.status(HttpStatus.OK).json({
-        message: result.message || 'Users retrieved successfully',
-        users: result.users,
-      });
-    } catch (error) {
-      res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: error ? error.message : 'Internal server error' });
-    }
+    const result = await this.authService.listUsers();
+    res.status(HttpStatus.OK).json({
+      message: result.message || 'Users retrieved successfully',
+      users: result.users,
+    });
   }
 }
